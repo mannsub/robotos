@@ -1,0 +1,16 @@
+# Go
+middleware/vendor/
+*.test
+*.out
+
+# C++
+hal/build*/
+*.o
+*.a
+*.so
+
+# Mac
+.DS_Store
+
+# Docker
+.env

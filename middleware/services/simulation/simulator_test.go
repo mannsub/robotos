@@ -15,6 +15,7 @@ func TestSimulatorPublishesIMU(t *testing.T) {
 	imuCh := sim.Bus().Sub(topicIMU, 10)
 
 	go sim.Run(ctx)
+	<-sim.Ready()
 
 	select {
 	case msg := <-imuCh:
@@ -37,8 +38,9 @@ func TestSimulatorHealthy(t *testing.T) {
 	defer cancel()
 
 	go sim.Run(ctx)
+	<-sim.Ready()
 
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(100 * time.Millisecond) // wait for health reports to accumulate
 
 	if !sim.IsHealthy() {
 		t.Fatal("expected simulator to be healthy")
@@ -52,13 +54,12 @@ func TestSimulatorJointCmd(t *testing.T) {
 
 	stateCh := sim.Bus().Sub(topicJointState, 20)
 	go sim.Run(ctx)
+	<-sim.Ready()
 
 	// send torque command to joint 0
 	cmd := JointCmd{ID: 0, Torque: 10.0}
 	b, _ := json.Marshal(cmd)
 	sim.Bus().Pub(topicJointCmd, b)
-
-	time.Sleep(100 * time.Millisecond)
 
 	// drain state messages and check joint 0
 	for {

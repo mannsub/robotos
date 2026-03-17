@@ -45,6 +45,7 @@ type Simulator struct {
 	logger *log.Logger
 	hz     int
 	joints []jointState
+	ready  chan struct{}
 }
 
 type jointState struct {
@@ -60,6 +61,7 @@ func New(hz int) *Simulator {
 		logger: log.New("simulator", log.LevelDebug),
 		hz:     hz,
 		joints: make([]jointState, 4),
+		ready:  make(chan struct{}),
 	}
 }
 
@@ -72,6 +74,8 @@ func (s *Simulator) Run(ctx context.Context) {
 	defer ticker.Stop()
 
 	cmdCh := s.bus.Sub(topicJointCmd, 10)
+
+	close(s.ready) // signal ready
 
 	s.logger.Infof("simulator started at %d Hz", s.hz)
 
@@ -98,6 +102,11 @@ func (s *Simulator) Run(ctx context.Context) {
 			tick++
 		}
 	}
+}
+
+// Ready returns a channel that is closed when the simulator is ready.
+func (s *Simulator) Ready() <-chan struct{} {
+	return s.ready
 }
 
 func (s *Simulator) publishIMU(tick int) {

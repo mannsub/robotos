@@ -1,0 +1,34 @@
+syntax = "proto3";
+
+package neodm;
+
+option go_package = "github.com/mannsub/robotos/middleware/services/neodm/proto/go";
+
+// NeoDM - Neo Decision Maker
+service NeoDM {
+  rpc GetDecision(DecisionRequest) returns (DecisionResponse);
+  rpc StreamState(StateRequest) returns (stream NeoDMState);
+}
+
+message DecisionRequest {
+  string nav_state = 1; // "IDLE" | "NAVIGATION" | "ARRIVED" | "FAILED"
+  float battery_pct = 2;
+  bool is_held = 3;
+  bool obstacle = 4;
+}
+
+message DecisionResponse {
+  string action = 1; // "NAVIGATION" | "IDLE" | "STOP" | "DOCK"
+  string target_goal = 2;
+  float confidence = 3;
+  string reason = 4;
+}
+
+message StateRequest {}
+
+message NeoDMState {
+  string emotion = 1; // Phase 2: emotion model
+  string decision = 2;
+  float loop_hz = 3;
+  int64 timestamp = 4; // Unix mx
+}

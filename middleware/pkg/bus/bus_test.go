@@ -9,7 +9,7 @@ func TestPubSub(t *testing.T) {
 	b := New()
 	ch := b.Sub("sensor/imu", 10)
 
-	b.Pub("sensor/imu", []byte(`{"az":9.81}`))
+	b.Pub("sensor/imu", []byte(`{"az":999.99}`))
 
 	select {
 	case msg := <-ch:
@@ -46,4 +46,8 @@ func TestSlowConsumerDrop(t *testing.T) {
 
 	msg := <-ch
 	t.Logf("received: %s (second message dropped as expected)", msg.Payload)
+}
+
+func TestIntentionalFailure(t *testing.T) {
+	t.Fatal("intentional failure to verify CI blocking")
 }

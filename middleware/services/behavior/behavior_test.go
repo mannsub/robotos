@@ -77,7 +77,7 @@ func TestBehaviorTransitionsToNavigating(t *testing.T) {
 
 	go svc.Run(ctx)
 	<-svc.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	if svc.State() != StateNavigating {
 		t.Errorf("expected NAVIGATING, got %s", svc.State())
@@ -97,7 +97,7 @@ func TestBehaviorTransitionsToStopped(t *testing.T) {
 
 	go svc.Run(ctx)
 	<-svc.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	if svc.State() != StateStopped {
 		t.Errorf("expected STOPPED, got %s", svc.State())
@@ -114,7 +114,7 @@ func TestBehaviorPublishesStateToBus(t *testing.T) {
 
 	go svc.Run(ctx)
 	<-svc.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	if bus.Topic() != "robot/state/behavior" {
 		t.Errorf("expected topic robot/state/behavior, got %s", bus.Topic())

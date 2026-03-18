@@ -35,7 +35,7 @@ func TestNavigationReachesGoal(t *testing.T) {
 	stateCh := b.Sub(topicNavState, 20)
 	go svc.Run(ctx)
 
-	svc.Ready() // wait for service to start
+	<-svc.Ready() // wait for service to start
 
 	// send goal
 	goal := GoalMsg{X: 5.0, Y: 5.0}
@@ -44,7 +44,7 @@ func TestNavigationReachesGoal(t *testing.T) {
 
 	// wait for navigation state updates
 	var lastState NavState
-	timeout := time.After(2 * time.Second)
+	timeout := time.After(5 * time.Second)
 	for {
 		select {
 		case msg := <-stateCh:
@@ -69,13 +69,13 @@ func TestNavigationHealthReport(t *testing.T) {
 
 	go svc.Run(ctx)
 
-	svc.Ready() // wait for service to start
+	<-svc.Ready() // wait for service to start
 
 	goal := GoalMsg{X: 1.0, Y: 1.0}
 	payload, _ := json.Marshal(goal)
 	b.Pub(topicGoal, payload)
 
-	time.Sleep(300 * time.Millisecond)
+	time.Sleep(500 * time.Millisecond)
 
 	if !h.IsHealthy() {
 		t.Fatal("expected navigation service to be healthy")

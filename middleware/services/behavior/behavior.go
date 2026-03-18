@@ -3,6 +3,7 @@ package behavior
 import (
 	"context"
 	"log"
+	"sync"
 	"time"
 
 	"github.com/mannsub/robotos/neodmpb"
@@ -23,6 +24,7 @@ type BusPublisher interface {
 // Service is the behavior service.
 // It polls NeoDM for decisions and publishes state to the bus.
 type Service struct {
+	mu        sync.Mutex
 	state     State
 	bus       BusPublisher
 	neodmAddr string
@@ -74,7 +76,7 @@ func (s *Service) Run(ctx context.Context) error {
 
 func (s *Service) poll(ctx context.Context, client neodmpb.NeoDMClient) {
 	resp, err := client.GetDecision(ctx, &neodmpb.DecisionRequest{
-		NavState: string(s.state),
+		NavState: string(s.State()),
 	})
 	if err != nil {
 		log.Printf("[behavior] GetDecision error: %v", err)
@@ -82,16 +84,21 @@ func (s *Service) poll(ctx context.Context, client neodmpb.NeoDMClient) {
 	}
 
 	event := Event(resp.Action)
+
+	s.mu.Lock()
 	next := nextState(s.state, event)
 
 	if next != s.state {
 		log.Printf("[behavior] state transition: %s -> %s (reason: %s)", s.state, next, resp.Reason)
 		s.state = next
 	}
+	s.mu.Unlock()
 
-	s.bus.Pub("robot/state/behavior", []byte(s.state))
+	s.bus.Pub("robot/state/behavior", []byte(s.State()))
 }
 
 func (s *Service) State() State {
+	s.mu.Lock()
+	defer s.mu.Unlock()
 	return s.state
 }

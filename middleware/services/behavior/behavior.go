@@ -17,7 +17,7 @@ const (
 
 // BusPublisher is the interface for publishing messages to the bus.
 type BusPublisher interface {
-	Publish(topic string, payload []byte)
+	Pub(topic string, payload []byte)
 }
 
 // Service is the behavior service.
@@ -89,7 +89,7 @@ func (s *Service) poll(ctx context.Context, client neodmpb.NeoDMClient) {
 		s.state = next
 	}
 
-	s.bus.Publish("robot/state/behavior", []byte(s.state))
+	s.bus.Pub("robot/state/behavior", []byte(s.state))
 }
 
 func (s *Service) State() State {

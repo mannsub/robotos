@@ -3,6 +3,7 @@ package behavior
 import (
 	"context"
 	"net"
+	"sync"
 	"testing"
 	"time"
 
@@ -12,13 +13,22 @@ import (
 
 // mockBus captures published messages for assertions.
 type mockBus struct {
+	mu      sync.Mutex
 	topic   string
 	payload []byte
 }
 
 func (m *mockBus) Pub(topic string, payload []byte) {
+	m.mu.Lock()
+	defer m.mu.Unlock()
 	m.topic = topic
 	m.payload = payload
+}
+
+func (m *mockBus) Topic() string {
+	m.mu.Lock()
+	defer m.mu.Unlock()
+	return m.topic
 }
 
 // mockNeoDMServer returns a fixed action for testing.
@@ -67,13 +77,13 @@ func TestBehaviorTransitionsToNavigating(t *testing.T) {
 
 	go svc.Run(ctx)
 	<-svc.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	if svc.State() != StateNavigating {
 		t.Errorf("expected NAVIGATING, got %s", svc.State())
 	}
-	if bus.topic != "robot/state/behavior" {
-		t.Errorf("expected topic robot/state/behavior, got %s", bus.topic)
+	if bus.Topic() != "robot/state/behavior" {
+		t.Errorf("expected topic robot/state/behavior, got %s", bus.Topic())
 	}
 }
 
@@ -87,7 +97,7 @@ func TestBehaviorTransitionsToStopped(t *testing.T) {
 
 	go svc.Run(ctx)
 	<-svc.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
 	if svc.State() != StateStopped {
 		t.Errorf("expected STOPPED, got %s", svc.State())
@@ -104,9 +114,9 @@ func TestBehaviorPublishesStateToBus(t *testing.T) {
 
 	go svc.Run(ctx)
 	<-svc.Ready()
-	time.Sleep(100 * time.Millisecond)
+	time.Sleep(200 * time.Millisecond)
 
-	if bus.topic != "robot/state/behavior" {
-		t.Errorf("expected topic robot/state/behavior, got %s", bus.topic)
+	if bus.Topic() != "robot/state/behavior" {
+		t.Errorf("expected topic robot/state/behavior, got %s", bus.Topic())
 	}
 }

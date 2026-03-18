@@ -4,7 +4,7 @@
 // 	protoc        v5.29.3
 // source: neodm.proto
 
-package _go
+package neodmpb
 
 import (
 	protoreflect "google.golang.org/protobuf/reflect/protoreflect"
@@ -289,7 +289,7 @@ const file_neodm_proto_rawDesc = "" +
 	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp2\x80\x01\n" +
 	"\x05NeoDM\x12>\n" +
 	"\vGetDecision\x12\x16.neodm.DecisionRequest\x1a\x17.neodm.DecisionResponse\x127\n" +
-	"\vStreamState\x12\x13.neodm.StateRequest\x1a\x11.neodm.NeoDMState0\x01B?Z=github.com/mannsub/robotos/middleware/services/neodm/proto/gob\x06proto3"
+	"\vStreamState\x12\x13.neodm.StateRequest\x1a\x11.neodm.NeoDMState0\x01B$Z\"github.com/mannsub/robotos/neodmpbb\x06proto3"
 
 var (
 	file_neodm_proto_rawDescOnce sync.Once

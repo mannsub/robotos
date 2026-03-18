@@ -4,7 +4,7 @@
 // - protoc             v5.29.3
 // source: neodm.proto
 
-package _go
+package neodmpb
 
 import (
 	context "context"

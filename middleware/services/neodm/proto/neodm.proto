@@ -2,7 +2,7 @@ syntax = "proto3";
 
 package neodm;
 
-option go_package = "github.com/mannsub/robotos/middleware/services/neodm/proto/go";
+option go_package = "github.com/mannsub/robotos/neodmpb";
 
 // NeoDM - Neo Decision Maker
 service NeoDM {

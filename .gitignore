@@ -14,3 +14,12 @@ hal/build*/
 
 # Docker
 .env
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.pytest_cache/
+
+# Go
+*.test

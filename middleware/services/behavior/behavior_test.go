@@ -16,7 +16,7 @@ type mockBus struct {
 	payload []byte
 }
 
-func (m *mockBus) Publish(topic string, payload []byte) {
+func (m *mockBus) Pub(topic string, payload []byte) {
 	m.topic = topic
 	m.payload = payload
 }

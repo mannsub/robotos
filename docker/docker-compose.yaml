@@ -1,0 +1,18 @@
+services:
+  neodm:
+    build:
+      context: ..
+      dockerfile: docker/neodm.Dockerfile
+    platform: linux/arm64
+    ports:
+      - "50051:50051"
+    restart: unless-stopped
+
+  robotos:
+    build:
+      context: ..
+      dockerfile: docker/go.Dockerfile
+    platform: linux/arm64
+    depends_on:
+      - neodm
+    restart: unless-stopped

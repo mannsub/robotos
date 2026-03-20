@@ -1,0 +1,54 @@
+syntax = "proto3";
+
+package robotos.v1;
+
+option go_package = "github.com/mannsub/robotos/proto/v1";
+
+import "v1/sensor.proto";
+
+// NeoDM - Neo Decision Maker
+// LOVOT NeoDM inspired behavior/decision service
+service NeoDM {
+  // Single decision request (polling mode)
+  rpc GetDecision(DecisionRequest) returns (DecisionResponse);
+
+  // Bidirectional stream: receive sensor data, send motion commands
+  rpc StreamDecision(stream SensorData) returns (stream DecisionResponse);
+
+  // Stream internal NeoDM state at 25Hz
+  rpc StreamState(StateRequest) returns (stream NeoDMState);
+}
+
+message DecisionRequest {
+  SensorData sensor = 1;
+  string nav_state = 2; // "IDLE" | "NAVIGATING" | "ARRIVED" | "FAILED"
+}
+
+message DecisionResponse {
+  string action = 1; // "NAVIGATE" | "IDLE" | "STOP" | "DOCK"
+  string target_goal = 2;
+  float confidence = 3;
+  string reason = 4;
+  MotionHint motion_hint = 5; // Phase 2: motion suggestion from NeoDM
+}
+
+message MotionHint {
+  repeated float joint_targets = 1; // suggested joint positions
+  string expression = 2;            // "curious" | "happy" | "neutral"
+}
+
+message StateRequest {}
+
+message NeoDMState {
+  Emotion emotion = 1;
+  string decision = 2;
+  float loop_hz = 3;
+  int64 timestamp = 4;
+}
+
+// Phase 2: emotion model
+message Emotion {
+  string label = 1;  // "NEUTRAL" | "HAPPY" | "CURIOUS" | "SLEEPY"
+  float valence = 2; // -1.0 ~ 1.0 (negative ~ positive)
+  float arousal = 3; // 0.0 ~ 1.0 (calm ~ excited)
+}

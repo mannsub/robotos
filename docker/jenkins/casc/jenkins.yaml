@@ -1,0 +1,60 @@
+credentials:
+  system:
+    domainCredentials:
+      - credentials:
+          - string:
+              description: "Slack incoming webhook URL"
+              id: "slack-webhook"
+              scope: GLOBAL
+              secret: "${SLACK_WEBHOOK_URL}"
+          - usernamePassword:
+              id: "github-token"
+              password: "${GITHUB_TOKEN}"
+              scope: GLOBAL
+              username: "mannsub"
+            domain: {}
+
+jenkins:
+  authorizationStrategy:
+    globalMatrix:
+      entries:
+        - user:
+            name: "anonymous"
+            permissions:
+              - "Job/Build"
+              - "Job/Read"
+              - "Overall/Read"
+        - group:
+            name: "authenticated"
+            permissions:
+              - "Overall/Administer"
+  crumbIssuer:
+    standard:
+      excludeClientIPFromCrumb: true
+  disableRememberMe: false
+  disabledAdministrativeMonitors:
+    - "jenkins.diagnostics.ControllerExecutorsNoAgents"
+    - "hudson.util.DoubleLaunchChecker"
+  numExecutors: 2
+  securityRealm:
+    local:
+      allowsSignup: false
+      enableCaptcha: false
+      users:
+        - id: "admin"
+          name: "admin"
+          password: "${JENKINS_ADMIN_PASSWORD}"
+  slaveAgentPort: 50000
+
+security:
+  gitHostKeyVerificationConfiguration:
+    sshHostKeyVerificationStrategy: "knownHostsFileVerificationStrategy"
+
+unclassified:
+  location:
+    url: "http://192.168.0.90:8080/"
+  gitHubPluginConfig:
+    hookUrl: "http://192.168.0.90:8080/github-webhook/"
+  slackNotifier:
+    botUser: false
+    sendAsText: false

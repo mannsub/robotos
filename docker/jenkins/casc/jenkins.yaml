@@ -1,7 +1,8 @@
 credentials:
   system:
     domainCredentials:
-      - credentials:
+      - domain: {}
+        credentials:
           - string:
               description: "Slack incoming webhook URL"
               id: "slack-webhook"
@@ -12,7 +13,6 @@ credentials:
               password: "${GITHUB_TOKEN}"
               scope: GLOBAL
               username: "mannsub"
-            domain: {}
 
 jenkins:
   authorizationStrategy:

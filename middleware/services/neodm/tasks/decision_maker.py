@@ -1,6 +1,7 @@
 import trio
 from dataclasses import dataclass
 from .poller import RobotState, _periodic
+from .hal_client import HalGatewayClient, HalSensorState
 
 
 @dataclass
@@ -18,8 +19,9 @@ class DecisionMaker:
     Phase 2: emotion model + ML-based decisions
     """
 
-    def __init__(self, state: RobotState) -> None:
+    def __init__(self, state: RobotState, hal_client: HalGatewayClient | None = None) -> None:
         self._state = state
+        self._hal = hal_client
         self._decision = Decision()
 
     @property
@@ -32,14 +34,18 @@ class DecisionMaker:
 
     async def _decide(self) -> None:
         s = self._state
+        hal = self._hal.state if self._hal else None
 
-        if s.obstacle:
+        obstacle = (hal.obstacle if hal else False) or s.obstacle
+        battery_pct = hal.battery_pct if hal else s.battery_pct
+
+        if obstacle:
             self._decision = Decision(
                 action="STOP",
                 confidence=1.0,
                 reason="obstacle detected",
             )
-        elif s.battery_pct < 20.0:
+        elif battery_pct < 20.0:
             self._decision = Decision(
                 action="DOCK",
                 confidence=0.9,

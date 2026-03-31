@@ -1,9 +1,13 @@
+from server import create_server
+from tasks import Poller, PhysicalStateEstimator, DecisionMaker, RobotState
+from tasks.hal_client import HalGatewayClient
 import signal
 import logging
 import trio
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), "../../../proto/v1/gen/python"))
 
-from tasks import Poller, PhysicalStateEstimator, DecisionMaker, RobotState
-from server import create_server
 
 logging.basicConfig(
     level=logging.INFO,
@@ -19,8 +23,9 @@ async def main() -> None:
 
     state = RobotState()
     poller = Poller(state)
+    hal_client = HalGatewayClient()
     physical_state = PhysicalStateEstimator(state)
-    decision_maker = DecisionMaker(state)
+    decision_maker = DecisionMaker(state, hal_client=hal_client)
 
     grpc_server = create_server(state, decision_maker, port=GRPC_PORT)
     grpc_server.start()
@@ -40,6 +45,7 @@ async def main() -> None:
             nursery.start_soon(poller.run)
             nursery.start_soon(physical_state.run)
             nursery.start_soon(decision_maker.run)
+            nursery.start_soon(hal_client.run)
             nursery.start_soon(_shutdown_watcher, shutdown, nursery.cancel_scope)
             log.info("All tasks started (25Hz loops running)")
     finally:

@@ -2,6 +2,7 @@ import trio
 from dataclasses import dataclass
 from .poller import RobotState, _periodic
 from .hal_client import HalGatewayClient, HalSensorState
+from .redis_publisher import RedisPublisher
 
 
 @dataclass
@@ -23,6 +24,7 @@ class DecisionMaker:
         self._state = state
         self._hal = hal_client
         self._decision = Decision()
+        self._redis = RedisPublisher()
 
     @property
     def current_decision(self) -> Decision:
@@ -63,3 +65,12 @@ class DecisionMaker:
                 confidence=1.0,
                 reason="no active goal",
             )
+
+        try:
+            self._redis.publish_state(
+                action=self._decision.action,
+                reason=self._decision.reason,
+                confidence=self._decision.confidence,
+            )
+        except Exception as e:
+            pass

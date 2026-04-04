@@ -31,3 +31,35 @@ services:
     environment:
       - REDIS_URL=redis://redis:6379
     restart: unless-stopped
+
+  mcap-logger:
+    build:
+      context: ..
+      dockerfile: docker/mcap-logger.Dockerfile
+    platform: linux/arm64
+    user: "0"
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
+      - MCAP_OUT_DIR=/recordings
+    volumes:
+      - mcap_recordings:/recordings
+    restart: unless-stopped
+
+  foxglove-bridge:
+    build:
+      context: ..
+      dockerfile: docker/foxglove-bridge.Dockerfile
+    platform: linux/arm64
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
+      - FOXGLOVE_ADDR=:8765
+    ports:
+      - "8765:8765"
+    restart: unless-stopped
+
+volumes:
+  mcap_recordings:

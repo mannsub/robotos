@@ -12,6 +12,7 @@ import (
 
 const (
 	topicGoal     = "robot/goal"
+	topicObstacle = "robot/map/obstacle"
 	topicJointCmd = "robot/cmd/joints"
 	topicNavState = "robot/state/navigation"
 )
@@ -20,6 +21,13 @@ const (
 type GoalMsg struct {
 	X float64 `json:"x"`
 	Y float64 `json:"y"`
+}
+
+// ObstacleMsg is the JSON payload received on robot/map/obstacle.
+type ObstacleMsg struct {
+	X       float64 `json:"x"`
+	Y       float64 `json:"y"`
+	Blocked bool    `json:"blocked"` // true = add obstacle, false = clear
 }
 
 // NavState is the JSON payload published to robot/state/navigation.
@@ -43,18 +51,19 @@ type Service struct {
 	bus     *bus.Bus
 	health  *health.Monitor
 	logger  *log.Logger
-	planner Planner
+	planner *AStarPlanner
 	pos     Point
 	ready   chan struct{}
 }
 
-// New creates a new navigation Service.
+// New creates a new navigation Service backed by an A* planner.
+// The default grid is 200×200 cells at 0.1 m/cell (20 m × 20 m).
 func New(b *bus.Bus, h *health.Monitor) *Service {
 	return &Service{
 		bus:     b,
 		health:  h,
 		logger:  log.New("navigation", log.LevelDebug),
-		planner: &SimpleLinearPlanner{},
+		planner: NewAStarPlanner(200, 200, 0.1),
 		ready:   make(chan struct{}),
 	}
 }
@@ -63,8 +72,9 @@ func New(b *bus.Bus, h *health.Monitor) *Service {
 func (s *Service) Run(ctx context.Context) {
 	s.health.Register("navigation")
 	goalCh := s.bus.Sub(topicGoal, 10)
+	obsCh := s.bus.Sub(topicObstacle, 32)
 
-	close(s.ready) // signal that service is ready to receive
+	close(s.ready)
 
 	s.logger.Info("navigation service started")
 
@@ -73,6 +83,18 @@ func (s *Service) Run(ctx context.Context) {
 		case <-ctx.Done():
 			s.logger.Info("navigation service stopped")
 			return
+
+		case msg := <-obsCh:
+			var obs ObstacleMsg
+			if err := json.Unmarshal(msg.Payload, &obs); err != nil {
+				s.logger.Errorf("invalid obstacle message: %v", err)
+				continue
+			}
+			if obs.Blocked {
+				s.planner.SetObstacle(obs.X, obs.Y)
+			} else {
+				s.planner.ClearObstacle(obs.X, obs.Y)
+			}
 
 		case msg := <-goalCh:
 			var goal GoalMsg
@@ -93,7 +115,11 @@ func (s *Service) Ready() <-chan struct{} {
 
 func (s *Service) navigateTo(ctx context.Context, goal Point) {
 	path := s.planner.Plan(s.pos, goal)
-	s.logger.Infof("navigation to (%.2f, %.2f) via %d waypoints", goal.X, goal.Y, len(path))
+	if path == nil {
+		s.logger.Errorf("no path to (%.2f, %.2f)", goal.X, goal.Y)
+		return
+	}
+	s.logger.Infof("navigating to (%.2f, %.2f) via %d waypoints", goal.X, goal.Y, len(path))
 
 	for _, waypoint := range path {
 		select {
@@ -102,7 +128,6 @@ func (s *Service) navigateTo(ctx context.Context, goal Point) {
 		default:
 		}
 
-		// convert waypoint delta to joint torque command
 		dx := waypoint.X - s.pos.X
 		dy := waypoint.Y - s.pos.Y
 		torque := (dx + dy) * 10.0
@@ -123,7 +148,7 @@ func (s *Service) navigateTo(ctx context.Context, goal Point) {
 
 func (s *Service) publishState(goal Point) {
 	state := NavState{
-		Status:   "navigation",
+		Status:   "navigating",
 		CurrentX: s.pos.X,
 		CurrentY: s.pos.Y,
 		GoalX:    goal.X,

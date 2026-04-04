@@ -1,5 +1,6 @@
 # Go
 middleware/vendor/
+middleware/robotos
 *.test
 *.out
 
@@ -14,14 +15,10 @@ hal/build*/
 
 # Docker
 .env
+docker/jenkins/.env
 
 # Python
 __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
-
-# Go
-*.test
-middleware/robotos
-docker/jenkins/.env

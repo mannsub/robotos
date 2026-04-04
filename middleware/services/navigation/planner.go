@@ -3,6 +3,7 @@ package navigation
 import (
 	"container/heap"
 	"math"
+	"sync"
 )
 
 // Point is a 2D world coordinate in metres.
@@ -78,6 +79,7 @@ func (h *astarHeap) Pop() any {
 // AStarPlanner implements A* path planning on a 2D occupancy grid.
 // Coordinates (0, 0) map to cell (0, 0); each cell is resolution × resolution metres.
 type AStarPlanner struct {
+	mu         sync.RWMutex
 	grid       [][]bool // grid[y][x] == true means obstacle
 	resolution float64
 	width      int
@@ -96,6 +98,8 @@ func NewAStarPlanner(width, height int, resolution float64) *AStarPlanner {
 // SetObstacle marks the grid cell at world coordinate (x, y) as impassable.
 func (p *AStarPlanner) SetObstacle(x, y float64) {
 	cx, cy := p.toCell(x, y)
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.inBounds(cx, cy) {
 		p.grid[cy][cx] = true
 	}
@@ -104,9 +108,22 @@ func (p *AStarPlanner) SetObstacle(x, y float64) {
 // ClearObstacle removes the obstacle at the grid cell containing world coordinate (x, y).
 func (p *AStarPlanner) ClearObstacle(x, y float64) {
 	cx, cy := p.toCell(x, y)
+	p.mu.Lock()
+	defer p.mu.Unlock()
 	if p.inBounds(cx, cy) {
 		p.grid[cy][cx] = false
 	}
+}
+
+// IsObstacle reports whether the grid cell at world coordinate (x, y) is blocked.
+func (p *AStarPlanner) IsObstacle(x, y float64) bool {
+	cx, cy := p.toCell(x, y)
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+	if !p.inBounds(cx, cy) {
+		return false
+	}
+	return p.grid[cy][cx]
 }
 
 func (p *AStarPlanner) toCell(x, y float64) (int, int) {
@@ -129,6 +146,9 @@ func (p *AStarPlanner) inBounds(cx, cy int) bool {
 func (p *AStarPlanner) Plan(from, to Point) []Point {
 	sx, sy := p.toCell(from.X, from.Y)
 	gx, gy := p.toCell(to.X, to.Y)
+
+	p.mu.RLock()
+	defer p.mu.RUnlock()
 
 	if !p.inBounds(sx, sy) || !p.inBounds(gx, gy) {
 		return nil

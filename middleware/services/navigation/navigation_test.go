@@ -159,8 +159,7 @@ func TestNavigationObstacleUpdate(t *testing.T) {
 
 	time.Sleep(50 * time.Millisecond)
 
-	cx, cy := svc.planner.toCell(1.0, 1.0)
-	if !svc.planner.grid[cy][cx] {
+	if !svc.planner.IsObstacle(1.0, 1.0) {
 		t.Error("expected obstacle to be set after ObstacleMsg")
 	}
 }

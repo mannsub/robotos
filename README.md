@@ -75,9 +75,9 @@ python3 -m pytest test_neodm.py -v
 
 ## Roadmap
 
-| Phase | Status         | Description                                              |
-| ----- | -------------- | -------------------------------------------------------- |
-| 1     | 🔄 In Progress | Full skeleton: nav, motion, behavior, NeoDM, docker, CI  |
-| 2     | ⬜ Planned     | A\* navigation + MCAP/Foxglove visualization + dashboard |
-| 3     | ⬜ Planned     | Jetson / Raspberry Pi HAL porting + RT kernel            |
-| 4     | ⬜ Planned     | Cloud fleet management + OTA update                      |
+| Phase | Status      | Description                                                                 |
+| ----- | ----------- | --------------------------------------------------------------------------- |
+| 1     | ✅ Done     | Full skeleton: nav, motion, behavior, NeoDM, docker, CI                     |
+| 2     | ✅ Done     | Proto v1, hal-gateway gRPC, Redis state sharing, MCAP/Foxglove visualization |
+| 3     | 🔄 In Progress | A\* navigation, dashboard, Jetson/RPi HAL porting + RT kernel            |
+| 4     | ⬜ Planned  | Cloud fleet management + OTA update                                         |

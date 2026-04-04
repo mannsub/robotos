@@ -1,22 +1,23 @@
-module github.com/mannsub/robotos
+module github.com/mannsub/robotos/services/foxglove-bridge
 
 go 1.25.6
 
 require (
-	google.golang.org/grpc v1.79.3
+	github.com/gorilla/websocket v1.5.3
+	github.com/mannsub/robotos v0.0.0
+	github.com/redis/go-redis/v9 v9.18.0
 	google.golang.org/protobuf v1.36.11
 )
 
 require (
 	github.com/cespare/xxhash/v2 v2.3.0 // indirect
 	github.com/dgryski/go-rendezvous v0.0.0-20200823014737-9f7001d12a5f // indirect
-	github.com/mannsub/robotos/neodmpb v0.0.0-00010101000000-000000000000 // indirect
-	github.com/redis/go-redis/v9 v9.18.0 // indirect
 	go.uber.org/atomic v1.11.0 // indirect
 	golang.org/x/net v0.48.0 // indirect
 	golang.org/x/sys v0.39.0 // indirect
 	golang.org/x/text v0.32.0 // indirect
 	google.golang.org/genproto/googleapis/rpc v0.0.0-20251202230838-ff82c1b0f217 // indirect
+	google.golang.org/grpc v1.79.3 // indirect
 )
 
-replace github.com/mannsub/robotos/neodmpb => ./services/neodm/proto/neodmpb
+replace github.com/mannsub/robotos => ../../

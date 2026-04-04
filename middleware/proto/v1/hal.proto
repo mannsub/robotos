@@ -1,0 +1,43 @@
+syntax = "proto3";
+
+package robotos.v1;
+
+option go_package = "github.com/mannsub/robotos/proto/v1";
+
+import "v1/sensor.proto";
+
+// HalGateway - Nerve System equivalent
+// Bridges HAL (C++) and upper services via gRPC
+service HalGateway {
+  // Stream sensor data upward at 25Hz (server streaming)
+  rpc StreamSensorData(SensorStreamRequest) returns (stream SensorData);
+
+  // Receive motion commands from NeoDM (client streaming)
+  rpc SendMotionCommand(stream MotionCommand) returns (MotionCommandAck);
+
+  // Bidirectional: NeoDM sends commands, hal-gateway sends sensor data
+  rpc SyncMotion(stream MotionCommand) returns (stream SensorData);
+}
+
+message SensorStreamRequest {
+  uint32 hz = 1; // requested frequency, max 25
+}
+
+message MotionCommand {
+  repeated float joint_targets = 1; // rad
+  repeated float joint_torques = 2; // Nm
+  SafetyMode safety_mode = 3;
+  int64 timestamp_us = 4;
+}
+
+message MotionCommandAck {
+  bool success = 1;
+  string message = 2;
+}
+
+enum SafetyMode {
+  SAFETY_MODE_UNSPECIFIED = 0;
+  SAFETY_MODE_NORMAL = 1;
+  SAFETY_MODE_TORQUE_OFF = 2; // emergency: remove all torque
+  SAFETY_MODE_COMPLIANT = 3;  // backdrivable mode
+}

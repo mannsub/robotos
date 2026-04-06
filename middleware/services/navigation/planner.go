@@ -105,6 +105,17 @@ func (p *AStarPlanner) SetObstacle(x, y float64) {
 	}
 }
 
+// Reset clears all obstacles in the grid.
+func (p *AStarPlanner) Reset() {
+	p.mu.Lock()
+	defer p.mu.Unlock()
+	for y := range p.grid {
+		for x := range p.grid[y] {
+			p.grid[y][x] = false
+		}
+	}
+}
+
 // ClearObstacle removes the obstacle at the grid cell containing world coordinate (x, y).
 func (p *AStarPlanner) ClearObstacle(x, y float64) {
 	cx, cy := p.toCell(x, y)
@@ -124,6 +135,40 @@ func (p *AStarPlanner) IsObstacle(x, y float64) bool {
 		return false
 	}
 	return p.grid[cy][cx]
+}
+
+// SnapToFree returns the world coordinate of the nearest free cell to (x, y).
+// Used when the robot's recorded position has been overtaken by a new obstacle.
+func (p *AStarPlanner) SnapToFree(x, y float64) (Point, bool) {
+	sx, sy := p.toCell(x, y)
+	p.mu.RLock()
+	defer p.mu.RUnlock()
+
+	if p.inBounds(sx, sy) && !p.grid[sy][sx] {
+		return p.toWorld(sx, sy), true // already free
+	}
+
+	// BFS outward to find the nearest free cell.
+	type cell struct{ x, y int }
+	visited := map[cell]bool{{sx, sy}: true}
+	queue := []cell{{sx, sy}}
+	for len(queue) > 0 {
+		cur := queue[0]
+		queue = queue[1:]
+		for _, d := range [4][2]int{{1, 0}, {-1, 0}, {0, 1}, {0, -1}} {
+			nx, ny := cur.x+d[0], cur.y+d[1]
+			c := cell{nx, ny}
+			if visited[c] || !p.inBounds(nx, ny) {
+				continue
+			}
+			visited[c] = true
+			if !p.grid[ny][nx] {
+				return p.toWorld(nx, ny), true
+			}
+			queue = append(queue, c)
+		}
+	}
+	return Point{}, false
 }
 
 func (p *AStarPlanner) toCell(x, y float64) (int, int) {
@@ -195,6 +240,12 @@ func (p *AStarPlanner) Plan(from, to Point) []Point {
 			nk := cellKey{nx, ny}
 			if !p.inBounds(nx, ny) || p.grid[ny][nx] || closed[nk] {
 				continue
+			}
+			// Prevent diagonal corner-cutting through walls
+			if d[0] != 0 && d[1] != 0 {
+				if p.grid[cur.y+d[1]][cur.x] || p.grid[cur.y][cur.x+d[0]] {
+					continue
+				}
 			}
 			ng := cur.g + costs[i]
 			if best, ok := gScore[nk]; ok && ng >= best {

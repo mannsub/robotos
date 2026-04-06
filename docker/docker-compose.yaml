@@ -47,6 +47,21 @@ services:
       - mcap_recordings:/recordings
     restart: unless-stopped
 
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/dashboard.Dockerfile
+    platform: linux/arm64
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
+      - DASHBOARD_ADDR=:8080
+      - STATIC_DIR=/frontend/dist
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
   foxglove-bridge:
     build:
       context: ..

@@ -57,5 +57,7 @@ async def test_poller_updates_timestamp():
     hal_client = MagicMock()
     hal_client.state = HalSensorState()
     poller = Poller(state, hal_client=hal_client)
+    poller._rdb = MagicMock()
+    poller._rdb.get.return_value = None
     poller._poll_sync()
     assert state.updated_at >= before

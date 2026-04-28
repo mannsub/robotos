@@ -174,8 +174,8 @@
     if (!data) return
     robotX  = data.current_x ?? 0
     robotY  = data.current_y ?? 0
-    goalX   = data.goal_x ?? null
-    goalY   = data.goal_y ?? null
+    goalX   = data.status === 'idle' ? null : (data.goal_x ?? null)
+    goalY   = data.status === 'idle' ? null : (data.goal_y ?? null)
     navPath = data.path ?? []
     draw()
   })
@@ -358,8 +358,12 @@
         const rx = mx * UNIT   // canvas col of room left edge
         const ry = my * UNIT   // canvas row of room bottom edge
 
-        // Corner post (always present, except outermost border already covered)
-        if (mx < MW-1 && my < MH-1) mark(rx + ROOM, ry + ROOM)
+        // Corner post: always at interior intersections; at border edges only when
+        // an adjacent wall segment needs a cap cell to close the 1-cell gap.
+        const needsPost = (mx < MW-1 && my < MH-1)
+          || (my === MH-1 && mx < MW-1 && rWall[my][mx])
+          || (mx === MW-1 && my < MH-1 && tWall[my][mx])
+        if (needsPost) mark(rx + ROOM, ry + ROOM)
 
         // Right wall of room(mx, my)
         if (mx < MW-1 && rWall[my][mx])
@@ -374,11 +378,10 @@
     // Send all obstacles as a single batch message to avoid channel drops
     ws.setMaze(mazeObstacles)
 
-    // Auto-set goal at center of top-right room
-    const gcx = (MW-1)*UNIT + Math.floor(ROOM/2)
-    const gcy = (MH-1)*UNIT + Math.floor(ROOM/2)
-    const [gwx, gwy] = cellToWorld(gcx, gcy)
-    ws.setGoal(gwx, gwy)
+    // Reset local display state immediately without waiting for server response
+    robotX = 0; robotY = 0
+    goalX = null; goalY = null
+    navPath = []
 
     draw()
   }

@@ -44,9 +44,9 @@ type NavState struct {
 	Status   string       `json:"status"`
 	CurrentX float64      `json:"current_x"`
 	CurrentY float64      `json:"current_y"`
-	GoalX    float64      `json:"goal_x"`
-	GoalY    float64      `json:"goal_y"`
-	Distance float64      `json:"distance"`
+	GoalX    float64      `json:"goal_x,omitempty"`
+	GoalY    float64      `json:"goal_y,omitempty"`
+	Distance float64      `json:"distance,omitempty"`
 	Path     [][2]float64 `json:"path,omitempty"`
 }
 
@@ -100,6 +100,10 @@ func (s *Service) Run(ctx context.Context) {
 	ticker := time.NewTicker(10 * time.Millisecond)
 	defer ticker.Stop()
 
+	// Publish idle state at 1Hz so Foxglove TF stays current even without a goal.
+	idleTicker := time.NewTicker(1 * time.Second)
+	defer idleTicker.Stop()
+
 	var (
 		goal *Point  // active goal; nil = idle
 		path []Point // planned waypoints
@@ -144,6 +148,12 @@ func (s *Service) Run(ctx context.Context) {
 		case <-ctx.Done():
 			s.logger.Info("navigation service stopped")
 			return
+
+		case <-idleTicker.C:
+			// Keep TF current in Foxglove even when no goal is active.
+			if goal == nil {
+				s.publishIdleState()
+			}
 
 		case msg := <-batchCh:
 			var batch MazeBatchMsg
@@ -260,6 +270,20 @@ func (s *Service) Run(ctx context.Context) {
 // Ready returns a channel that is closed when the service is ready to receive.
 func (s *Service) Ready() <-chan struct{} {
 	return s.ready
+}
+
+func (s *Service) publishIdleState() {
+	s.mu.RLock()
+	pos := s.pos
+	s.mu.RUnlock()
+
+	state := NavState{
+		Status:   "idle",
+		CurrentX: pos.X,
+		CurrentY: pos.Y,
+	}
+	b, _ := json.Marshal(state)
+	s.bus.Pub(topicNavState, b)
 }
 
 func (s *Service) publishState(goal Point) {

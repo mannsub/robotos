@@ -50,9 +50,14 @@ async def test_obstacle_priority_over_low_battery():
 
 @pytest.mark.trio
 async def test_poller_updates_timestamp():
-    import time
+    from unittest.mock import MagicMock
+    from tasks.hal_client import HalSensorState
     state = RobotState()
     before = state.updated_at
-    poller = Poller(state)
-    await poller._poll()
+    hal_client = MagicMock()
+    hal_client.state = HalSensorState()
+    poller = Poller(state, hal_client=hal_client)
+    poller._rdb = MagicMock()
+    poller._rdb.get.return_value = None
+    poller._poll_sync()
     assert state.updated_at >= before

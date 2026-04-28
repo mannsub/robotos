@@ -1,0 +1,204 @@
+<?xml version="1.0"?>
+<!--
+  LOVOT-like robot URDF
+  Reference specs: height 430mm, width 280mm, depth 260mm, weight ~4.3 kg
+  Locomotion: 2 front drive wheels (retractable) + 1 rear caster ball
+  URDF uses basic primitives (cylinder/sphere/box) to approximate the egg-like body.
+  All dimensions in metres.
+-->
+<robot name="robotos">
+
+  <!-- ─── BODY ────────────────────────────────────────────────────────────── -->
+  <!-- Main egg-like torso approximated with a short cylinder.
+       radius=0.12 m → 240 mm body width (arms/wheels bring total to ~280 mm)
+       length=0.22 m → body column -->
+  <link name="base_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <cylinder radius="0.12" length="0.22"/>
+      </geometry>
+      <material name="cream">
+        <color rgba="0.94 0.90 0.84 1.0"/>
+      </material>
+    </visual>
+  </link>
+
+  <!-- Lower body dome: sphere blending cylinder base into rounded bottom -->
+  <link name="body_bottom_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.115"/>
+      </geometry>
+      <material name="cream">
+        <color rgba="0.94 0.90 0.84 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="body_bottom_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="body_bottom_link"/>
+    <!-- z=-0.04 → sphere bottom = -(0.04+0.115) = -0.155, same as drive wheel contact -->
+    <origin xyz="0 0 -0.04"/>
+  </joint>
+
+  <!-- ─── HEAD ─────────────────────────────────────────────────────────────── -->
+  <!-- Sphere head sitting on top of body cylinder.
+       r=0.115 → head diameter ~230 mm, proportionally large for expressive eyes.
+       Total height from body center: 0.11 + 0.115 = 0.225 m -->
+  <link name="head_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.115"/>
+      </geometry>
+      <material name="cream">
+        <color rgba="0.94 0.90 0.84 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="head_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="head_link"/>
+    <origin xyz="0 0 0.22"/>
+  </joint>
+
+  <!-- ─── HORN ──────────────────────────────────────────────────────────────
+       Block-shaped sensor unit on top of head.
+       Houses: 360° thermal camera, microphone array, luminosity sensor, IMU.
+       Approximated with a box capped by a small sphere for the rounded tip. -->
+  <link name="horn_base_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <box size="0.038 0.038 0.055"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.28 0.28 0.28 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="horn_base_joint" type="fixed">
+    <parent link="head_link"/>
+    <child link="horn_base_link"/>
+    <origin xyz="0 0 0.135"/>
+  </joint>
+
+  <link name="horn_tip_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.022"/>
+      </geometry>
+      <material name="dark_gray">
+        <color rgba="0.28 0.28 0.28 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="horn_tip_joint" type="fixed">
+    <parent link="horn_base_link"/>
+    <child link="horn_tip_link"/>
+    <origin xyz="0 0 0.038"/>
+  </joint>
+
+  <!-- ─── DRIVE WHEELS ──────────────────────────────────────────────────────
+       2× planetary in-wheel motor units, positioned at the front of the base.
+       Wheel profile: flat disc, radius ~65 mm, thickness ~35 mm.
+       They retract into the body when picked up (fixed here for URDF). -->
+  <link name="left_wheel_link">
+    <visual>
+      <!-- rpy rotates cylinder axis from Z to Y so the disc faces outward -->
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.065" length="0.035"/>
+      </geometry>
+      <material name="near_black">
+        <color rgba="0.12 0.12 0.12 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="left_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="left_wheel_link"/>
+    <!-- x=+0.03 forward, y=+0.155 (body r + half wheel thickness), z=-0.09 low -->
+    <origin xyz="0.03 0.155 -0.09"/>
+  </joint>
+
+  <link name="right_wheel_link">
+    <visual>
+      <origin xyz="0 0 0" rpy="1.5708 0 0"/>
+      <geometry>
+        <cylinder radius="0.065" length="0.035"/>
+      </geometry>
+      <material name="near_black">
+        <color rgba="0.12 0.12 0.12 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="right_wheel_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_wheel_link"/>
+    <origin xyz="0.03 -0.155 -0.09"/>
+  </joint>
+
+  <!-- ─── REAR CASTER ───────────────────────────────────────────────────────
+       Single ball caster at the rear, with auto brush-cleaning on retraction.
+       Approximated as a small sphere. -->
+  <link name="caster_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.025"/>
+      </geometry>
+      <material name="near_black">
+        <color rgba="0.12 0.12 0.12 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="caster_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="caster_link"/>
+    <!-- x=-0.10 rear, z=-0.13 → caster bottom = -(0.13+0.025) = -0.155 = drive wheel contact -->
+    <origin xyz="-0.10 0.0 -0.13"/>
+  </joint>
+
+  <!-- ─── FLIPPERS (ARMS) ───────────────────────────────────────────────────
+       Two teardrop-shaped appendages on the upper-mid sides.
+       Used for waving, expressing desire to be held, dancing.
+       Modelled as overlapping spheres to hint at the teardrop silhouette. -->
+  <link name="left_flipper_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.068"/>
+      </geometry>
+      <material name="cream">
+        <color rgba="0.94 0.90 0.84 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="left_flipper_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="left_flipper_link"/>
+    <origin xyz="0.01 0.175 0.06"/>
+  </joint>
+
+  <link name="right_flipper_link">
+    <visual>
+      <origin xyz="0 0 0"/>
+      <geometry>
+        <sphere radius="0.068"/>
+      </geometry>
+      <material name="cream">
+        <color rgba="0.94 0.90 0.84 1.0"/>
+      </material>
+    </visual>
+  </link>
+  <joint name="right_flipper_joint" type="fixed">
+    <parent link="base_link"/>
+    <child link="right_flipper_link"/>
+    <origin xyz="0.01 -0.175 0.06"/>
+  </joint>
+
+</robot>

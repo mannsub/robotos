@@ -53,21 +53,25 @@ pipeline {
 
     post {
         success {
-            withCredentials([string(credentialsId: 'slack-webhook', variable: 'WEBHOOK')]) {
-                sh """
-                    curl -s -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*✅ Build Passed* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\nBranch: ${env.GIT_BRANCH}\\n<${env.BUILD_URL}|View Build>"}' \
-                    \$WEBHOOK
-                """
+            node('built-in') {
+                withCredentials([string(credentialsId: 'slack-webhook', variable: 'WEBHOOK')]) {
+                    sh """
+                        curl -s -X POST -H 'Content-type: application/json' \
+                        --data '{"text":"*✅ Build Passed* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\nBranch: ${env.GIT_BRANCH}\\n<${env.BUILD_URL}|View Build>"}' \
+                        \$WEBHOOK
+                    """
+                }
             }
         }
         failure {
-            withCredentials([string(credentialsId: 'slack-webhook', variable: 'WEBHOOK')]) {
-                sh """
-                    curl -s -X POST -H 'Content-type: application/json' \
-                    --data '{"text":"*❌ Build Failed* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\nBranch: ${env.GIT_BRANCH}\\n<${env.BUILD_URL}|View Build>"}' \
-                    \$WEBHOOK
-                """
+            node('built-in') {
+                withCredentials([string(credentialsId: 'slack-webhook', variable: 'WEBHOOK')]) {
+                    sh """
+                        curl -s -X POST -H 'Content-type: application/json' \
+                        --data '{"text":"*❌ Build Failed* — ${env.JOB_NAME} #${env.BUILD_NUMBER}\\nBranch: ${env.GIT_BRANCH}\\n<${env.BUILD_URL}|View Build>"}' \
+                        \$WEBHOOK
+                    """
+                }
             }
         }
     }

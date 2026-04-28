@@ -47,19 +47,35 @@ func NewLogger(rdb *redis.Client, outPath string) (*Logger, error) {
 		redisToTopic:  make(map[string]string),
 	}
 
-	// Register schemas and channels for all defined data streams.
+	// Register schemas and channels for protobuf streams.
 	for i, ch := range channels {
 		schemaID := uint16(i + 1)
 		chanID := uint16(i + 1)
 
-		schema := buildMcapSchema(schemaID, ch.sample)
-		if err := w.WriteSchema(schema); err != nil {
+		if err := w.WriteSchema(buildMcapSchema(schemaID, ch.sample)); err != nil {
+			f.Close()
+			return nil, err
+		}
+		if err := w.WriteChannel(buildMcapChannel(chanID, schemaID, ch.topic)); err != nil {
 			f.Close()
 			return nil, err
 		}
 
-		channel := buildMcapChannel(chanID, schemaID, ch.topic)
-		if err := w.WriteChannel(channel); err != nil {
+		l.topicToChanID[ch.topic] = chanID
+		l.redisToTopic[ch.redisKey] = ch.topic
+	}
+
+	// Register schemas and channels for JSON streams (e.g. nav:state).
+	base := uint16(len(channels))
+	for i, ch := range jsonChannels {
+		schemaID := base + uint16(i+1)
+		chanID := base + uint16(i+1)
+
+		if err := w.WriteSchema(buildMcapJSONSchema(schemaID, ch.topic, ch.schema)); err != nil {
+			f.Close()
+			return nil, err
+		}
+		if err := w.WriteChannel(buildMcapJSONChannel(chanID, schemaID, ch.topic)); err != nil {
 			f.Close()
 			return nil, err
 		}

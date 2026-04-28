@@ -4,7 +4,8 @@ from dataclasses import dataclass
 from v1 import sensor_pb2, hal_pb2, hal_pb2_grpc
 
 
-HAL_GATEWAY_ADDR = "localhost:50051"
+import os
+HAL_GATEWAY_ADDR = os.environ.get("HAL_GATEWAY_ADDR", "hal-gateway:50052")
 
 
 @dataclass

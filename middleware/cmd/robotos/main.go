@@ -68,6 +68,7 @@ func runRedisBridge(ctx context.Context, redisURL string, b *bus.Bus) {
 			case <-ctx.Done():
 				return
 			case msg := <-navStateCh:
+				rdb.Set(ctx, "nav:state", string(msg.Payload), 5*time.Second)
 				rdb.Publish(ctx, "nav:state", string(msg.Payload))
 			}
 		}

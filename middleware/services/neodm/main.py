@@ -22,8 +22,8 @@ async def main() -> None:
     log.info("NeoDM starting up...")
 
     state = RobotState()
-    poller = Poller(state)
     hal_client = HalGatewayClient()
+    poller = Poller(state, hal_client=hal_client)
     physical_state = PhysicalStateEstimator(state)
     decision_maker = DecisionMaker(state, hal_client=hal_client)
 

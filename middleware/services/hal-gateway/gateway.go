@@ -11,7 +11,7 @@ import (
 )
 
 const (
-	DefaultAdd = ":50051"
+	DefaultAdd = ":50052"
 	SensorHz   = 25
 )
 

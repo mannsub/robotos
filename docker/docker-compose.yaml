@@ -7,6 +7,15 @@ services:
     restart: unless-stopped
     command: redis-server --save "" --appendonly no
 
+  hal-gateway:
+    build:
+      context: ..
+      dockerfile: docker/hal-gateway.Dockerfile
+    platform: linux/arm64
+    ports:
+      - "50052:50052"
+    restart: unless-stopped
+
   neodm:
     build:
       context: ..
@@ -16,8 +25,10 @@ services:
       - "50051:50051"
     depends_on:
       - redis
+      - hal-gateway
     environment:
       - REDIS_URL=redis://redis:6379
+      - HAL_GATEWAY_ADDR=hal-gateway:50052
     restart: unless-stopped
 
   robotos:
@@ -47,6 +58,21 @@ services:
       - mcap_recordings:/recordings
     restart: unless-stopped
 
+  dashboard:
+    build:
+      context: ..
+      dockerfile: docker/dashboard.Dockerfile
+    platform: linux/arm64
+    depends_on:
+      - redis
+    environment:
+      - REDIS_ADDR=redis:6379
+      - DASHBOARD_ADDR=:8080
+      - STATIC_DIR=/frontend/dist
+    ports:
+      - "8080:8080"
+    restart: unless-stopped
+
   foxglove-bridge:
     build:
       context: ..
@@ -61,5 +87,25 @@ services:
       - "8765:8765"
     restart: unless-stopped
 
+  jenkins:
+    build:
+      context: ..
+      dockerfile: docker/jenkins/Dockerfile
+    platform: linux/arm64
+    user: root
+    ports:
+      - "8090:8080"
+      - "50000:50000"
+    volumes:
+      - jenkins_home:/var/jenkins_home
+      - /var/run/docker.sock:/var/run/docker.sock
+      - ./jenkins/casc:/var/jenkins_home/casc
+    env_file:
+      - jenkins/.env
+    environment:
+      - CASC_JENKINS_CONFIG=/var/jenkins_home/casc/jenkins.yaml
+    restart: unless-stopped
+
 volumes:
   mcap_recordings:
+  jenkins_home:

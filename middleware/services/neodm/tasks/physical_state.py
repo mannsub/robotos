@@ -12,10 +12,10 @@ class PhysicalStateEstimator:
     def __init__(self, state: RobotState) -> None:
         self._state = state
 
-        async def run(self) -> None:
-            async for _ in _periodic(1 / 25):
-                await self._estimate()
+    async def run(self) -> None:
+        async for _ in _periodic(1 / 25):
+            await self._estimate()
 
-        async def _estimate(self) -> None:
-            # Phase 2: self._state.is_held = self._detect_held()
-            pass
+    async def _estimate(self) -> None:
+        # Phase 2: self._state.is_held = self._detect_held()
+        pass

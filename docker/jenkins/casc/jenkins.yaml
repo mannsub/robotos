@@ -28,9 +28,6 @@ jenkins:
             name: "authenticated"
             permissions:
               - "Overall/Administer"
-  crumbIssuer:
-    standard:
-      excludeClientIPFromCrumb: true
   disableRememberMe: false
   disabledAdministrativeMonitors:
     - "jenkins.diagnostics.ControllerExecutorsNoAgents"
@@ -52,9 +49,9 @@ security:
 
 unclassified:
   location:
-    url: "http://192.168.0.90:8080/"
+    url: "http://192.168.0.194:8090/"
   gitHubPluginConfig:
-    hookUrl: "http://192.168.0.90:8080/github-webhook/"
+    hookUrl: "http://192.168.0.194:8090/github-webhook/"
   slackNotifier:
     botUser: false
     sendAsText: false

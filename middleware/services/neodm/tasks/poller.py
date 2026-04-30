@@ -9,6 +9,8 @@ from typing import TYPE_CHECKING
 if TYPE_CHECKING:
     from tasks.hal_client import HalGatewayClient
 
+from .emotion_state import EmotionState, TouchEvent
+
 REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379")
 
 
@@ -19,6 +21,8 @@ class RobotState:
     is_held: bool = False
     obstacle: bool = False
     updated_at: float = field(default_factory=time.monotonic)
+    emotion: EmotionState = field(default_factory=EmotionState)
+    touch_events: list[TouchEvent] = field(default_factory=list)
 
 
 class Poller:
@@ -37,7 +41,7 @@ class Poller:
 
     async def run(self) -> None:
         async for _ in _periodic(1 / 25):
-            await trio.to_thread.run_sync(self._poll_sync, cancellable=True)
+            await trio.to_thread.run_sync(self._poll_sync, abandon_on_cancel=True)
 
     def _poll_sync(self) -> None:
         # Pull latest nav:state from Redis (GET, not subscribe — low-latency snapshot)

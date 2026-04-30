@@ -101,9 +101,8 @@ func navStateToTF(payload []byte) ([]byte, error) {
 		Timestamp:   foxgloveTime{Sec: now.Unix(), Nsec: int64(now.Nanosecond())},
 		ParentFrame: "world",
 		ChildFrame:  "base_link",
-		// Lift robot so drive wheels (lowest at z=-0.155 from base_link) touch the floor.
-		// TF z=0.155: wheel joint z=-0.09, radius=0.065 → lowest point z=-0.155 → floor=0.0
-		Translation: vec3{X: ns.CurrentX, Y: ns.CurrentY, Z: 0.155},
+		// Mesh feet are at Z=0 in base_link frame (applied during STL export).
+		Translation: vec3{X: ns.CurrentX, Y: ns.CurrentY, Z: 0.0},
 		Rotation:    quaternion{X: 0, Y: 0, Z: math.Sin(half), W: math.Cos(half)},
 	}
 	return json.Marshal(tf)

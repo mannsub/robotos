@@ -5,15 +5,23 @@
   import NeoDMPanel  from './lib/NeoDMPanel.svelte'
   import NavPanel    from './lib/NavPanel.svelte'
   import SensorPanel from './lib/SensorPanel.svelte'
+  import EmotionSim  from './lib/EmotionSim.svelte'
 
   onMount(() => ws.connect())
   onDestroy(() => ws.disconnect())
+
+  let activeView = 'map'
 </script>
 
 <div class="layout">
   <header>
     <div class="logo">RobotOS</div>
-    <div class="header-center">Dashboard</div>
+    <div class="header-center">
+      <div class="tabs">
+        <button class:active={activeView === 'map'}      on:click={() => activeView = 'map'}>Map</button>
+        <button class:active={activeView === 'emotion'}  on:click={() => activeView = 'emotion'}>Emotion Sim</button>
+      </div>
+    </div>
     <div class="ws-status" class:connected={$connected}>
       <span class="ws-dot"></span>
       {$connected ? 'Connected' : 'Reconnecting…'}
@@ -27,7 +35,11 @@
     </aside>
 
     <section class="map-col">
-      <MapCanvas />
+      {#if activeView === 'map'}
+        <MapCanvas />
+      {:else}
+        <EmotionSim />
+      {/if}
     </section>
   </main>
 
@@ -75,6 +87,25 @@
     color: #8b949e;
     letter-spacing: 0.05em;
   }
+
+  .tabs {
+    display: flex;
+    gap: 4px;
+  }
+
+  .tabs button {
+    background: none;
+    border: 1px solid #30363d;
+    border-radius: 6px;
+    color: #8b949e;
+    cursor: pointer;
+    font-size: 12px;
+    padding: 4px 14px;
+    transition: all 0.15s;
+  }
+
+  .tabs button:hover { border-color: #58a6ff; color: #e6edf3; }
+  .tabs button.active { background: #1f6feb; border-color: #1f6feb; color: #fff; }
 
   .ws-status {
     display: flex;

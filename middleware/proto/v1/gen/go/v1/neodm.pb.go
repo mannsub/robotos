@@ -305,12 +305,14 @@ func (x *NeoDMState) GetTimestamp() int64 {
 	return 0
 }
 
-// Phase 2: emotion model
+// Emotion model (Russell's Circumplex: valence × arousal)
 type Emotion struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
-	Label         string                 `protobuf:"bytes,1,opt,name=label,proto3" json:"label,omitempty"`       // "NEUTRAL" | "HAPPY" | "CURIOUS" | "SLEEPY"
-	Valence       float32                `protobuf:"fixed32,2,opt,name=valence,proto3" json:"valence,omitempty"` // -1.0 ~ 1.0 (negative ~ positive)
-	Arousal       float32                `protobuf:"fixed32,3,opt,name=arousal,proto3" json:"arousal,omitempty"` // 0.0 ~ 1.0 (calm ~ excited)
+	EyeState      string                 `protobuf:"bytes,1,opt,name=eye_state,json=eyeState,proto3" json:"eye_state,omitempty"` // "NEUTRAL" | "HAPPY" | "EXCITED" | "SLEEPY" | "ANXIOUS" | "SAD" | "SURPRISED"
+	Valence       float32                `protobuf:"fixed32,2,opt,name=valence,proto3" json:"valence,omitempty"`                 // -1.0 ~ 1.0 (displeasure ~ pleasure)
+	Arousal       float32                `protobuf:"fixed32,3,opt,name=arousal,proto3" json:"arousal,omitempty"`                 // 0.0 ~ 1.0 (calm ~ excited)
+	Anxiety       float32                `protobuf:"fixed32,4,opt,name=anxiety,proto3" json:"anxiety,omitempty"`                 // 0.0 ~ 1.0 (familiar ~ unfamiliar)
+	Energy        float32                `protobuf:"fixed32,5,opt,name=energy,proto3" json:"energy,omitempty"`                   // 0.0 ~ 100.0 (depleted ~ full)
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -345,9 +347,9 @@ func (*Emotion) Descriptor() ([]byte, []int) {
 	return file_v1_neodm_proto_rawDescGZIP(), []int{5}
 }
 
-func (x *Emotion) GetLabel() string {
+func (x *Emotion) GetEyeState() string {
 	if x != nil {
-		return x.Label
+		return x.EyeState
 	}
 	return ""
 }
@@ -362,6 +364,20 @@ func (x *Emotion) GetValence() float32 {
 func (x *Emotion) GetArousal() float32 {
 	if x != nil {
 		return x.Arousal
+	}
+	return 0
+}
+
+func (x *Emotion) GetAnxiety() float32 {
+	if x != nil {
+		return x.Anxiety
+	}
+	return 0
+}
+
+func (x *Emotion) GetEnergy() float32 {
+	if x != nil {
+		return x.Energy
 	}
 	return 0
 }
@@ -397,11 +413,13 @@ const file_v1_neodm_proto_rawDesc = "" +
 	"\aemotion\x18\x01 \x01(\v2\x13.robotos.v1.EmotionR\aemotion\x12\x1a\n" +
 	"\bdecision\x18\x02 \x01(\tR\bdecision\x12\x17\n" +
 	"\aloop_hz\x18\x03 \x01(\x02R\x06loopHz\x12\x1c\n" +
-	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\"S\n" +
-	"\aEmotion\x12\x14\n" +
-	"\x05label\x18\x01 \x01(\tR\x05label\x12\x18\n" +
+	"\ttimestamp\x18\x04 \x01(\x03R\ttimestamp\"\x8c\x01\n" +
+	"\aEmotion\x12\x1b\n" +
+	"\teye_state\x18\x01 \x01(\tR\beyeState\x12\x18\n" +
 	"\avalence\x18\x02 \x01(\x02R\avalence\x12\x18\n" +
-	"\aarousal\x18\x03 \x01(\x02R\aarousal2\xe0\x01\n" +
+	"\aarousal\x18\x03 \x01(\x02R\aarousal\x12\x18\n" +
+	"\aanxiety\x18\x04 \x01(\x02R\aanxiety\x12\x16\n" +
+	"\x06energy\x18\x05 \x01(\x02R\x06energy2\xe0\x01\n" +
 	"\x05NeoDM\x12H\n" +
 	"\vGetDecision\x12\x1b.robotos.v1.DecisionRequest\x1a\x1c.robotos.v1.DecisionResponse\x12J\n" +
 	"\x0eStreamDecision\x12\x16.robotos.v1.SensorData\x1a\x1c.robotos.v1.DecisionResponse(\x010\x01\x12A\n" +

@@ -155,7 +155,7 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 	info, _ := json.Marshal(ServerInfo{
 		Op:           "serverInfo",
 		Name:         "RobotOS Foxglove Bridge",
-		Capabilities: []string{},
+		Capabilities: []string{"fetchAssets"},
 	})
 	if err := client.writeMessage(websocket.TextMessage, info); err != nil {
 		return
@@ -179,11 +179,18 @@ func (b *Bridge) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	// Read loop: handle subscribe / unsubscribe messages from the client.
+	// Read loop: handle text (subscribe/unsubscribe) and binary (fetchAsset) messages.
 	for {
-		_, raw, err := conn.ReadMessage()
+		msgType, raw, err := conn.ReadMessage()
 		if err != nil {
 			break
+		}
+		// Binary messages: only fetchAsset (op=0x07) is expected from clients.
+		if msgType == websocket.BinaryMessage {
+			if len(raw) > 0 && raw[0] == 0x07 {
+				b.handleFetchAsset(client, raw)
+			}
+			continue
 		}
 		var op struct {
 			Op string `json:"op"`

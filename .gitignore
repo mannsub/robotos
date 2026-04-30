@@ -23,3 +23,13 @@ __pycache__/
 *.pyc
 *.pyo
 .pytest_cache/
+
+# Compiled service binaries
+middleware/services/dashboard/dashboard
+middleware/services/mcap-logger/mcap-logger
+
+# Robot model assets (user-supplied — see README)
+middleware/services/foxglove-bridge/meshes/*.glb
+middleware/services/foxglove-bridge/meshes/*.stl
+middleware/services/foxglove-bridge/meshes/*.obj
+middleware/services/foxglove-bridge/meshes/*.mtl

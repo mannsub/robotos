@@ -31,6 +31,22 @@ func main() {
 	go bridge.Run(ctx)
 
 	mux := http.NewServeMux()
+	// Serve mesh assets over plain HTTP.
+	// bunny.stl is embedded in the binary; bunny.glb is read from /meshes volume mount.
+	mux.HandleFunc("/meshes/", func(w http.ResponseWriter, r *http.Request) {
+		w.Header().Set("Access-Control-Allow-Origin", "*")
+		name := r.URL.Path[len("/meshes/"):]
+		switch name {
+		case "bunny.stl":
+			w.Header().Set("Content-Type", "model/stl")
+			w.Write(bunnySTL)
+		case "bunny.glb":
+			w.Header().Set("Content-Type", "model/gltf-binary")
+			http.ServeFile(w, r, "/meshes/bunny.glb")
+		default:
+			http.NotFound(w, r)
+		}
+	})
 	mux.Handle("/", bridge)
 
 	srv := &http.Server{

@@ -1,5 +1,5 @@
 from server import create_server
-from tasks import Poller, PhysicalStateEstimator, DecisionMaker, RobotState
+from tasks import Poller, PhysicalStateEstimator, DecisionMaker, RobotState, EmotionEngine
 from tasks.hal_client import HalGatewayClient
 import signal
 import logging
@@ -26,6 +26,7 @@ async def main() -> None:
     poller = Poller(state, hal_client=hal_client)
     physical_state = PhysicalStateEstimator(state)
     decision_maker = DecisionMaker(state, hal_client=hal_client)
+    emotion_engine = EmotionEngine(state)
 
     grpc_server = create_server(state, decision_maker, port=GRPC_PORT)
     grpc_server.start()
@@ -45,6 +46,7 @@ async def main() -> None:
             nursery.start_soon(poller.run)
             nursery.start_soon(physical_state.run)
             nursery.start_soon(decision_maker.run)
+            nursery.start_soon(emotion_engine.run)
             nursery.start_soon(hal_client.run)
             nursery.start_soon(_shutdown_watcher, shutdown, nursery.cancel_scope)
             log.info("All tasks started (25Hz loops running)")

@@ -38,13 +38,32 @@ class RedisPublisher:
         state = neodm_pb2.NeoDMState(
             decision=action,
             emotion=neodm_pb2.Emotion(
-                label=reason,
+                eye_state=reason,
                 valence=confidence,
             ),
         )
         data = state.SerializeToString()
         self._client.setex(KEY_NEODM_STATE, STATE_TTL, data)
         self._client.publish(CHANNEL_NEODM_STATE, data)
+
+    def publish_emotion(
+        self,
+        energy: float,
+        valence: float,
+        arousal: float,
+        anxiety: float,
+        eye_state: str,
+    ) -> None:
+        emotion = neodm_pb2.Emotion(
+            eye_state=eye_state,
+            valence=valence,
+            arousal=arousal,
+            anxiety=anxiety,
+            energy=energy,
+        )
+        data = emotion.SerializeToString()
+        self._client.setex("emotion:state", STATE_TTL, data)
+        self._client.publish("emotion:state", data)
 
     def ping(self) -> bool:
         try:

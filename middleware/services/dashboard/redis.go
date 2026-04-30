@@ -60,7 +60,7 @@ func subscribeRedis(addr string, h *hub) {
 				"loop_hz":   pb.GetLoopHz(),
 				"timestamp": pb.GetTimestamp(),
 				"emotion": map[string]any{
-					"label":   pb.GetEmotion().GetLabel(),
+					"label":   pb.GetEmotion().GetEyeState(),
 					"valence": pb.GetEmotion().GetValence(),
 					"arousal": pb.GetEmotion().GetArousal(),
 				},

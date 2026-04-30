@@ -46,9 +46,11 @@ message NeoDMState {
   int64 timestamp = 4;
 }
 
-// Phase 2: emotion model
+// Emotion model (Russell's Circumplex: valence × arousal)
 message Emotion {
-  string label = 1;  // "NEUTRAL" | "HAPPY" | "CURIOUS" | "SLEEPY"
-  float valence = 2; // -1.0 ~ 1.0 (negative ~ positive)
-  float arousal = 3; // 0.0 ~ 1.0 (calm ~ excited)
+  string eye_state = 1; // "NEUTRAL" | "HAPPY" | "EXCITED" | "SLEEPY" | "ANXIOUS" | "SAD" | "SURPRISED"
+  float valence = 2;    // -1.0 ~ 1.0 (displeasure ~ pleasure)
+  float arousal = 3;    // 0.0 ~ 1.0 (calm ~ excited)
+  float anxiety = 4;    // 0.0 ~ 1.0 (familiar ~ unfamiliar)
+  float energy = 5;     // 0.0 ~ 100.0 (depleted ~ full)
 }

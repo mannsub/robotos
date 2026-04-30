@@ -91,11 +91,43 @@ python3 -m pytest test_neodm.py -v
 http://<host>:8080
 ```
 
+**Map tab**
 - 🎯 **Goal mode** — click to set navigation target
 - ⬛ **Obstacle mode** — draw walls
 - 📏 **Line mode** — draw straight walls (Bresenham)
 - 🎲 **Maze** — generate random DFS maze
 - ✏️ **Erase** — remove obstacles
+
+**Emotion Sim tab**
+
+Interactive 3D emotion simulation using your robot's GLB model.
+
+- Left-click the model to touch different zones (Ear, Head, Face, Arm, Belly, Back, Nose)
+- Right-click for rough contact
+- Each touch zone affects the emotion parameters (valence, arousal, anxiety, energy) in real time
+- Emotion state is displayed in the top-right panel (NEUTRAL / HAPPY / EXCITED / SLEEPY / ANXIOUS / SAD)
+
+## Robot Model Setup
+
+Model assets are **not included** in this repository. You must supply your own 3D model.
+
+```
+middleware/services/foxglove-bridge/meshes/
+├── <your-model>.glb   ← GLB file served to the Emotion Sim (via foxglove-bridge :8765)
+└── <your-model>.stl   ← optional STL for Foxglove Studio URDF visualization
+```
+
+**Steps:**
+
+1. Export your robot model as a GLB file (e.g. from Meshy AI, Blender, or any 3D tool)
+2. Place it in `middleware/services/foxglove-bridge/meshes/` and update the filename reference in `EmotionSim.svelte` and `main.go`
+3. *(Optional)* Export an STL version to the same folder for Foxglove Studio
+4. Rebuild the foxglove-bridge container:
+   ```bash
+   cd docker && docker compose build foxglove-bridge && docker compose up -d foxglove-bridge
+   ```
+
+The touch zone hit-boxes are calibrated for a humanoid/character figure roughly 1.8 m tall — adjust the zone definitions in `EmotionSim.svelte` if your model has a different proportions.
 
 ## Foxglove Visualization
 
@@ -123,5 +155,6 @@ Jenkins runs at `http://<host>:8090`
 | ----- | -------------- | --------------------------------------------------------------------------- |
 | 1     | ✅ Done        | Skeleton: nav, motion, behavior, NeoDM, Docker, CI                          |
 | 2     | ✅ Done        | A* navigation, dashboard, Foxglove/URDF/TF, MCAP logging, hal-gateway, maze |
+| 2.5   | ✅ Done        | Emotion engine (4-axis), 3D emotion sim, touch zones, dashboard integration |
 | 3     | ⬜ Planned     | Real hardware HAL (Jetson), SLAM, sensor fusion                             |
 | 4     | ⬜ Planned     | Cloud fleet management + OTA update                                         |

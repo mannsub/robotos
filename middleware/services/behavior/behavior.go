@@ -48,8 +48,13 @@ func (s *Service) Ready() <-chan struct{} {
 }
 
 func (s *Service) Run(ctx context.Context) error {
+	target := s.neodmAddr
+	// grpc.NewClient requires explicit dns:/// scheme for Docker DNS resolution.
+	if len(target) > 0 && target[0] != '/' {
+		target = "dns:///" + target
+	}
 	conn, err := grpc.NewClient(
-		s.neodmAddr,
+		target,
 		grpc.WithTransportCredentials(insecure.NewCredentials()),
 	)
 	if err != nil {

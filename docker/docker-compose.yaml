@@ -85,6 +85,8 @@ services:
       - FOXGLOVE_ADDR=:8765
     ports:
       - "8765:8765"
+    volumes:
+      - ../middleware/services/foxglove-bridge/meshes:/meshes:ro
     restart: unless-stopped
 
   jenkins:
